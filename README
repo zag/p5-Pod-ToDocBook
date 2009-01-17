@@ -1,7 +1,7 @@
-XML-Flow version 0.85
+Pod::ToDocBook version 0.1
 =====================
 
-XML::Flow - Store (restore) perl data structures in XML stream.
+Pod::ToDocBook - Pluggable converter POD data to DocBook.
 
 INSTALLATION
 
@@ -16,13 +16,16 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
- XML::Parser;
- XML::Writer;
+ XML::ExtOn;
+ XML::SAX::Writer;
+ Pod::Parser;
+ XML::Flow;
+
 
 COPYRIGHT AND LICENCE
 
 
-Copyright (C) 2006-2008 by Zahatski Aliaksandr
+Copyright (C) 2009 by Zahatski Aliaksandr
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
