@@ -9,7 +9,7 @@ Test Pod::ToDocBook::ProcessHeads filter
 use strict;
 use warnings;
 #use Test::More ('no_plan');
-use Test::More (tests=>4);
+use Test::More (tests=>3);
 
 use XML::ExtOn qw( create_pipe );
 use XML::SAX::Writer;

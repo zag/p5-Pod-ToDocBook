@@ -76,7 +76,7 @@ use XML::SAX::Writer;
 require Exporter;
 *import                    = \&Exporter::import;
 @Pod::ToDocBook::EXPORT_OK = qw(create_parser);
-$Pod::ToDocBook::VERSION   = '0.1';
+$Pod::ToDocBook::VERSION   = '0.2';
 
 =head1 FUNCTIONS
 

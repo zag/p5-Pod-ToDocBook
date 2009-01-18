@@ -97,6 +97,7 @@ sub end_input {
 =head2 parse_link Ltext
 
 types:
+
     pod
         L<text> 
         L<text::test>

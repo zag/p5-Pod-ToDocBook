@@ -9,13 +9,12 @@ Test  Pod::ToDocBook::DoSequences filter
 use strict;
 use warnings;
 #use Test::More ('no_plan');
-use Test::More tests => 10;
+use Test::More tests => 9;
 use XML::ExtOn qw( create_pipe );
 use XML::SAX::Writer;
 use XML::Flow;
 use Data::Dumper;
 use_ok 'Pod::ToDocBook::Pod2xml';
-use_ok 'Pod::ToDocBook::TidyXML';
 use_ok 'Pod::ToDocBook::ProcessHeads';
 use_ok 'Pod::ToDocBook::DoSequences';
 

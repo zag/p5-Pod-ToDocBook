@@ -9,7 +9,7 @@ Test  Pod::ToDocBook::ProcessItems filter
 use strict;
 use warnings;
 #use Test::More ('no_plan');
-use Test::More (tests=>13);
+use Test::More (tests=>12);
 use XML::ExtOn qw( create_pipe );
 use XML::SAX::Writer;
 use XML::Flow;
