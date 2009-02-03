@@ -25,7 +25,6 @@ Pod::ToDocBook::DoSequences - Process Formatting Codes (a.k.a. "interior sequenc
 
 =cut
 
-
 use warnings;
 use strict;
 use Data::Dumper;
@@ -197,6 +196,9 @@ sub on_end_element {
           ->add_content( $self->mk_characters( $el->{TITLE} ) );
     }
     elsif ( $code eq 'X' ) {
+        return $el->mk_element('indexterm')
+          ->add_content( $el->mk_element('primary')
+              ->add_content( $self->mk_characters( $el->{TITLE} ) ) );
         return $self->mk_from_xml(
             qq!<indexterm><primary>$el->{TITLE}</primary></indexterm>!)
 
