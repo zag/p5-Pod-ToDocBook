@@ -41,14 +41,13 @@ sub on_start_element {
     my ( $self, $el ) = @_;
     my $lname = $el->local_name;
     my $attr  = $el->attrs_by_name;
+
     if ( $lname eq 'head1' and $el->{TITLE} =~ /\s*NAME\s*/ ) {
-        #diag "START HEAD";
+
         $self->{NAME}++;
         $el->delete_element;
-   
+
         $el->{NAME}++;
-    } elsif ( $lname eq 'begin') {
-        $el->delete_element->skip_content;
     }
     elsif ( $lname eq 'title' ) {
         $el->delete_element->skip_content
@@ -59,6 +58,7 @@ sub on_start_element {
         delete $self->{NAME};
     }
     elsif ( $lname =~ m/head(\d)/ ) {
+
         #set id
         $el->attrs_by_name->{'id'} = $el->{ID};
         $el->local_name('section');
@@ -69,8 +69,8 @@ sub on_start_element {
 sub on_end_element {
     my ( $self, $el ) = @_;
     my $lname = $el->local_name;
-#    diag "end element $lname";
     if ( $lname eq 'head1' and exists $el->{NAME} ) {
+
         #diag 'END NAME';
     }
     $el;

@@ -16,10 +16,45 @@ Pod::ToDocBook::Pod2xml - Converter POD data to XML::ExtON events.
     my $p = create_pipe( $px, $w );
     $p->parse($text);
     return $buf;
+    
+    my $px = new Pod::ToDocBook::Pod2xml:: header => 0, doctype => 'chapter', base_id=>'namespace';
 
 =head1 DESCRIPTION
 
+
 Pod::ToDocBook::Pod2xml - Converter POD data to XML::ExtON events.
+
+=head1 XML FORMAT
+
+=over 
+
+=item * =begin, =end, =for
+
+pod:
+
+    =begin table params, params
+
+        some text
+
+    =end
+
+xml:
+
+    <begin params='params, params' name='table'><![CDATA[some text
+ 
+     ]]></begin>
+    
+pod:
+
+    =for someformat text
+
+xml:
+
+    <begin params='' name='someformat'><![CDATA[text
+ 
+     ]]>
+
+=back
 
 =cut
 
@@ -126,8 +161,9 @@ sub parse_link {
         # text|name/" sd|sd | "
         my ( $t1, @linkto ) = split( /\|/, $text );
         ( $ltext, $linkto ) = ( $t1, join "", @linkto );
+
         #( $ltext, $linkto ) = split( /\|/, $text, 2 );
-        
+
     }
     else {
         $ltext = $text;
@@ -135,21 +171,31 @@ sub parse_link {
     if ( $ltext =~ /\A\w+:[^:\s]\S*\Z/ ) {
         $linkto = $ltext;
     }
-    $linkto ||='';
-    if ($linkto =~ /\A\w+:[^:\s]\S*\Z/ ) {
+    $linkto ||= '';
+    if ( $linkto =~ /\A\w+:[^:\s]\S*\Z/ ) {
         return { type => 'url', text => $ltext, linkto => $linkto };
     }
+
     #now nandle man an pod types
-    my ( $base_id , $section ) = _parse_section($linkto ? $linkto: $ltext );
+    my ( $base_id, $section ) = _parse_section( $linkto ? $linkto : $ltext );
+
     #for L<"pod section">
     unless ($linkto) {
+
         #may be L<man(1)>
         $ltext = $section if $section;
     }
+
     #make destanation id
-    $linkto = $self->_make_id($section, $base_id);
-    $type = 'man' if ( $ltext =~ /\(\S*\)/);
-    return { type => $type, text => $ltext, linkto => $linkto, base_id=>$base_id , section=>$section };
+    $linkto = $self->_make_id( $section, $base_id );
+    $type = 'man' if ( $ltext =~ /\(\S*\)/ );
+    return {
+        type    => $type,
+        text    => $ltext,
+        linkto  => $linkto,
+        base_id => $base_id,
+        section => $section
+    };
 }
 
 # Parse the name and section portion of a link into a name and section.
@@ -157,24 +203,25 @@ sub _parse_section {
     my ($link) = @_;
     $link =~ s/^\s+//;
     $link =~ s/\s+$//;
-    
+
     # If the whole link is enclosed in quotes, interpret it all as a section
     # even if it contains a slash.
-    return (undef, $1) if ($link =~ /^"\s*(.*?)\s*"$/);
-    
+    return ( undef, $1 ) if ( $link =~ /^"\s*(.*?)\s*"$/ );
+
     # Split into page and section on slash, and then clean up quoting in the
     # section.  If there is no section and the name contains spaces, also
     # guess that it's an old section link.
-    my ($page, $section) = split (/\s*\/\s*/, $link, 2);
+    my ( $page, $section ) = split( /\s*\/\s*/, $link, 2 );
     $section =~ s/^"\s*(.*?)\s*"$/$1/ if $section;
-    if ($page && $page =~ / / && !defined ($section)) {
-	$section = $page;
-	$page = undef;
-    } else {
-	$page = undef unless $page;
-	$section = undef unless $section;
+    if ( $page && $page =~ / / && !defined($section) ) {
+        $section = $page;
+        $page    = undef;
     }
-    return ($page, $section);
+    else {
+        $page    = undef unless $page;
+        $section = undef unless $section;
+    }
+    return ( $page, $section );
 }
 
 sub get_elements_from_text {
@@ -266,6 +313,13 @@ sub _stop_elem {
               . ". In stack: $current->{COMMAND} ( from line: $current->{LINE_NUM} )"
               unless $open_name eq $close_name;
         }
+
+        #special handle format tag
+        if ( $current->local_name eq 'begin' ) {
+            if ( my $cdata = delete $current->{TEXT_BLOCK} ) {
+                $current->add_content( $self->mk_cdata($cdata) );
+            }
+        }
         $self->_process($current);
     }
 
@@ -329,7 +383,7 @@ sub command {
 
             #diag 'no current level for' . $current_head;
             die "check syntax before line $line_num for command: $current_head"
-              unless $current_head eq 'NONE';
+              unless $current_head =~ /^NONE|pod$/;
             $current_level = 0;
         }
 
@@ -414,6 +468,10 @@ sub command {
 
 sub verbatim {
     my ( $parser, $paragraph, $line_num ) = @_;
+    if ( $parser->_current && $parser->_current->local_name eq 'begin' ) {
+        $parser->_current->{TEXT_BLOCK} .= $paragraph;
+        return undef;
+    }
     my $elem =
       $parser->mk_element('verbatim')
       ->add_content( $parser->mk_cdata($paragraph) );
@@ -422,8 +480,12 @@ sub verbatim {
 
 sub textblock {
     my ( $parser, $paragraph, $line_num ) = @_;
-    unless ( $parser->current_element->local_name eq 'begin' ) {
+    unless ( $parser->_current && $parser->_current->local_name eq 'begin' ) {
         $paragraph =~ s/\s+$//ms;
+    }
+    else {
+        $parser->_current->{TEXT_BLOCK} .= $paragraph;
+        return undef;
     }
     my $elem =
       $parser->mk_element('para')
@@ -445,7 +507,7 @@ specification.
 
 sub _make_id {
     my $parser  = shift;
-    my $text    = shift||'';
+    my $text    = shift || '';
     my $base_id = shift || $parser->{base_id} || '';
 
     # trim text spaces

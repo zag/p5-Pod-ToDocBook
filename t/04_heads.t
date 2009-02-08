@@ -79,4 +79,13 @@ is_deeply $t4, [
            'title',
            {}
          ],'section';
+my $xml2 = pod2xml( <<OUT1 );
 
+=head1 NAME
+
+test
+
+=cut
+OUT1
+
+diag $xml2;

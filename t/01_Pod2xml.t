@@ -110,7 +110,7 @@ my ( $t2, $c2 );
         },
     }
 );
-is $c2, 9, 'formats, para, verbatim: count';
+is $c2, 8, 'formats, para, verbatim: count';
 
 is_deeply $t2, [ 'begin', 1, 'begin', 1, 'verbatim', 1, 'para', 1 ],
   'formats, para, verbatim: struct';

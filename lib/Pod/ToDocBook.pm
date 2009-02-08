@@ -30,6 +30,7 @@ Pod::ToDocBook - set of L<XML::ExtOn> filters for process POD data.
 
 =item * Pod::ToDocBook::ProcessHeads - process =head's elements
 
+=item *  Pod::ToDocBook::TableDefault 
 =back
 
 Sample  for add new processor:
@@ -71,20 +72,21 @@ use Pod::ToDocBook::Pod2xml;
 use Pod::ToDocBook::ProcessHeads;
 use Pod::ToDocBook::ProcessItems;
 use Pod::ToDocBook::DoSequences;
+use  Pod::ToDocBook::TableDefault;
 use XML::SAX::Writer;
 
 require Exporter;
 *import                    = \&Exporter::import;
 @Pod::ToDocBook::EXPORT_OK = qw(create_parser);
-$Pod::ToDocBook::VERSION   = '0.3';
+$Pod::ToDocBook::VERSION   = '0.4';
 
 =head1 FUNCTIONS
 
-=head2 create_parser { head=>0|1,  doctype=>chapter|some_root_tag} [, 'MyFilter1', $link_to_SAX_object ]
+=head2 create_parser { head=>0|1,  doctype=>chapter|some_root_tag [ , base_id =>'some_namespace']} [, 'MyFilter1', $link_to_SAX_object ]
 
 Create parser for process pod.
 
-    my $p = create_parser({header => 0, doctype => 'chapter'}, "MyFilter1", $w );
+    my $p = create_parser({header => 0, doctype => 'chapter', base_id=>'name_space'}, "MyFilter1", $w );
     $p->parse( \*FH );
 
 =cut
@@ -95,11 +97,13 @@ sub create_parser {
 
     my $px = new Pod::ToDocBook::Pod2xml::
       header  => $attr->{header},
-      doctype => $attr->{doctype};
+      doctype => $attr->{doctype},
+      base_id => defined($attr->{base_id}) ? $attr->{base_id} : '';
 
     my $p = create_pipe(
         $px, 'Pod::ToDocBook::ProcessItems',
         'Pod::ToDocBook::DoSequences', 'Pod::ToDocBook::ProcessHeads',
+         'Pod::ToDocBook::TableDefault'
         , @_
     );
     return $p;
@@ -110,7 +114,7 @@ __END__
 
 =head1 SEE ALSO
 
-Pod::ToDocBook::Pod2xml, Pod::ToDocBook::DoSequences, Pod::ToDocBook::ProcessHeads, XML::ExtOn, XML::Writer, Pod::2::DocBook
+Pod::ToDocBook::Pod2xml, Pod::ToDocBook::DoSequences, Pod::ToDocBook::ProcessHeads, XML::ExtOn, XML::Writer, Pod::2::DocBook,  Pod::ToDocBook::TableDefault
 
 =head1 AUTHOR
 

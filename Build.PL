@@ -9,6 +9,7 @@ Module::Build->new
 	'XML::SAX::Writer' => '0',
 	'Pod::Parser'=>'0',
 	'Encode'=>0,
+	'Text::ParseWords'=>0,
 	     },
    dist_version_from=>'lib/Pod/ToDocBook.pm',
    dist_author=>'Zahatski Aliaksandr zag@cpan.org',
