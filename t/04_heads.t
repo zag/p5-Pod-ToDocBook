@@ -88,4 +88,3 @@ test
 =cut
 OUT1
 
-diag $xml2;

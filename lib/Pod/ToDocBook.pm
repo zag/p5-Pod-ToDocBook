@@ -78,7 +78,7 @@ use XML::SAX::Writer;
 require Exporter;
 *import                    = \&Exporter::import;
 @Pod::ToDocBook::EXPORT_OK = qw(create_parser);
-$Pod::ToDocBook::VERSION   = '0.4';
+$Pod::ToDocBook::VERSION   = '0.5';
 
 =head1 FUNCTIONS
 
@@ -102,8 +102,8 @@ sub create_parser {
 
     my $p = create_pipe(
         $px, 'Pod::ToDocBook::ProcessItems',
+         'Pod::ToDocBook::TableDefault',
         'Pod::ToDocBook::DoSequences', 'Pod::ToDocBook::ProcessHeads',
-         'Pod::ToDocBook::TableDefault'
         , @_
     );
     return $p;

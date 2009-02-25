@@ -78,6 +78,7 @@ use Data::Dumper;
 use Test::More;
 use Text::ParseWords;
 use XML::ExtOn;
+use Pod::ToDocBook::Pod2xml;
 use base 'XML::ExtOn';
 
 #<begin params='test' name='table'>
@@ -102,10 +103,13 @@ Must retrun array ref to elements
 sub process_format {
     my ( $self, $cdata, %att ) = @_;
     my ( $title, $align, $row_titles, @strs ) = split( /\n/, $cdata );
+    #create POD2XML instance for parce pod sequences
+    my $pod_parser = new Pod::ToDocBook::Pod2xml::;
     my $table =
       $self->mk_element('table')
       ->add_content(
-        $self->mk_element('title')->add_content( $self->mk_characters($title) )
+#       $self->mk_element('title')->add_content( $self->mk_characters($title) )
+        $self->mk_element('title')->add_content( $pod_parser->get_elements_from_text($title, 'table format') )
       );
     my @alignspec = split( /\s*,\s*/, $align );
     ( my $tgroup = $self->mk_element('tgroup') )->attrs_by_name->{cols} =
@@ -125,7 +129,8 @@ sub process_format {
     my @entryes = ();
     for ( quotewords( ',|\|', 0, $row_titles ) ) {
         push @entryes,
-          $self->mk_element('entry')->add_content( $self->mk_characters($_) );
+#          $self->mk_element('entry')->add_content( $self->mk_characters($_) );
+          $self->mk_element('entry')->add_content( $pod_parser->get_elements_from_text($_, 'table format') );
     }
     $row->add_content(@entryes)->insert_to( $self->mk_element('thead') );
 
@@ -141,7 +146,8 @@ sub process_format {
         for (@fields) {
             push @elems,
               $self->mk_element('entry')
-              ->add_content( $self->mk_characters($_) );
+              ->add_content(  $pod_parser->get_elements_from_text($_, 'table format') );
+#              ->add_content( $self->mk_characters($_) );
         }
         push @rows, $self->mk_element('row')->add_content(@elems);
     }
@@ -172,6 +178,17 @@ sub on_cdata {
         return undef;
     }
     return $cdata;
+}
+#convert POD Sequences ( C<sd>, L<sdsd> ... )
+sub  on_characters__ {
+    my ( $self, $elem, $text ) = @_;
+    if ( exists $self->{PROCESS} ) {
+    warn "CHaracters". $elem->local_name . " \$text: $text ";
+#        $elem
+        return undef;
+    }
+    return $text;
+
 }
 
 1;

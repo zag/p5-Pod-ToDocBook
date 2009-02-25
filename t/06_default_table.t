@@ -9,7 +9,7 @@ Test  Pod::ToDocBook::TableDefault filter
 use strict;
 use warnings;
 #use Test::More ('no_plan');
-use Test::More tests => 6;
+use Test::More tests => 7;
 use XML::ExtOn qw( create_pipe );
 use XML::SAX::Writer;
 use XML::Flow;
@@ -64,5 +64,35 @@ my ( $t1, $c1 );
     colspec=>sub { $c1++},
 });
 is $c1, 12+3, 'format codes: count';
+
+my $xml2 = pod2xml( <<'OUT1' );
+
+=pod
+
+=begin table
+
+table title B<bold>
+left, center, right
+column name 1,"testname , meters", name3
+123 , 123 , 123 I<italic>
+1,2,"2, and 3"
+
+=end table
+
+=cut
+OUT1
+
+#diag  $xml2; exit;
+# <chapter><pod><table><title>table title <code name='B'><![CDATA[B<bold>]]></code></title><tgroup cols='3'><colspec align='left' /><colspec align='center' /><colspec align='right' /><thead><row><entry>column name 1</entry><entry>testname , meters</entry><entry> name3</entry></row></thead><tbody><row><entry>123 </entry><entry> 123 </entry><entry> 123 <code name='I'><![CDATA[I<italic>]]></code></entry></row><row><entry>1</entry><entry>2</entry><entry>2, and 3</entry></row></tbody></tgroup></table></pod></chapter>
+
+my ( $t2, $c2 );
+( new XML::Flow:: \$xml2 )->read({
+    entry=>sub { shift; $c2++ },
+    row=>sub { $c2++},
+    colspec=>sub { $c2++},
+    code=>sub { $c2++},
+
+});
+is $c2, 17, 'format sequences:count';
 
 
