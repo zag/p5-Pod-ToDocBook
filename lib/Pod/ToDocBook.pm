@@ -72,13 +72,14 @@ use Pod::ToDocBook::Pod2xml;
 use Pod::ToDocBook::ProcessHeads;
 use Pod::ToDocBook::ProcessItems;
 use Pod::ToDocBook::DoSequences;
-use  Pod::ToDocBook::TableDefault;
+use Pod::ToDocBook::TableDefault;
+use Pod::ToDocBook::FormatList;
 use XML::SAX::Writer;
 
 require Exporter;
 *import                    = \&Exporter::import;
 @Pod::ToDocBook::EXPORT_OK = qw(create_parser);
-$Pod::ToDocBook::VERSION   = '0.5';
+$Pod::ToDocBook::VERSION   = '0.6';
 
 =head1 FUNCTIONS
 
@@ -101,7 +102,7 @@ sub create_parser {
       base_id => defined($attr->{base_id}) ? $attr->{base_id} : '';
 
     my $p = create_pipe(
-        $px, 'Pod::ToDocBook::ProcessItems',
+        $px, 'Pod::ToDocBook::FormatList','Pod::ToDocBook::ProcessItems',
          'Pod::ToDocBook::TableDefault',
         'Pod::ToDocBook::DoSequences', 'Pod::ToDocBook::ProcessHeads',
         , @_

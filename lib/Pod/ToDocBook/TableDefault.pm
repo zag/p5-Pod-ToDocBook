@@ -108,7 +108,6 @@ sub process_format {
     my $table =
       $self->mk_element('table')
       ->add_content(
-#       $self->mk_element('title')->add_content( $self->mk_characters($title) )
         $self->mk_element('title')->add_content( $pod_parser->get_elements_from_text($title, 'table format') )
       );
     my @alignspec = split( /\s*,\s*/, $align );
@@ -129,7 +128,6 @@ sub process_format {
     my @entryes = ();
     for ( quotewords( ',|\|', 0, $row_titles ) ) {
         push @entryes,
-#          $self->mk_element('entry')->add_content( $self->mk_characters($_) );
           $self->mk_element('entry')->add_content( $pod_parser->get_elements_from_text($_, 'table format') );
     }
     $row->add_content(@entryes)->insert_to( $self->mk_element('thead') );
@@ -147,7 +145,6 @@ sub process_format {
             push @elems,
               $self->mk_element('entry')
               ->add_content(  $pod_parser->get_elements_from_text($_, 'table format') );
-#              ->add_content( $self->mk_characters($_) );
         }
         push @rows, $self->mk_element('row')->add_content(@elems);
     }
@@ -178,17 +175,6 @@ sub on_cdata {
         return undef;
     }
     return $cdata;
-}
-#convert POD Sequences ( C<sd>, L<sdsd> ... )
-sub  on_characters__ {
-    my ( $self, $elem, $text ) = @_;
-    if ( exists $self->{PROCESS} ) {
-    warn "CHaracters". $elem->local_name . " \$text: $text ";
-#        $elem
-        return undef;
-    }
-    return $text;
-
 }
 
 1;
