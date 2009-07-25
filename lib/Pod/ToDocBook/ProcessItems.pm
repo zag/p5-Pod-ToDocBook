@@ -30,7 +30,6 @@ Pod::ToDocBook::ProcessItems - Process POD lists.
 
 =cut
 
-
 use warnings;
 use strict;
 use Data::Dumper;
@@ -88,8 +87,6 @@ sub on_start_element {
       $self->current_element ? $self->current_element->local_name : '';
     my $attr = $el->attrs_by_name;
     my @res  = ($el);
-
-    #diag "start: $lname";
     if ( $lname eq 'item' ) {
         $el = $self->_process_item($el);
         unless ( exists $self->{IN_LIST} ) {
@@ -126,19 +123,12 @@ sub on_start_element {
         $el->local_name( $cname eq 'varlistentry' ? 'term' : 'para' );
         if ( $cname eq 'varlistentry' ) {
             $el->local_name('term');
-            my $anchor = $el->mk_element('anchor');
-            $anchor->attrs_by_name->{id} = $self->current_element->{ID};
-            push @res, $anchor;    # id="$id" />
         }
 
-        #        if ( )
         #clean paragraph from first sym
         $el->{CLEAN_FIRST} = 1;
     }
     elsif ( $lname eq 'over' ) {
-
-        #diag "start over";
-        $self->{IN_OVER} = 1;
         $el->delete_element;
     }
     elsif ( $lname eq 'para' && $self->current_element->local_name eq 'over' ) {
@@ -162,14 +152,9 @@ sub on_start_element {
 sub on_end_element {
     my ( $self, $el ) = @_;
     my $lname = $el->local_name;
-
-    #diag "end: $lname";
-    if ( $lname eq 'over' ) {
-        $self->{IN_OVER} = 0;
-    }
-    if ( $lname eq 'over' && exists $self->{IN_LIST} ) {
-
-        #diag "end over";
+    my $cname =
+      $self->current_element ? $self->current_element->local_name : '';
+    if ( $cname eq 'over' && exists $self->{IN_LIST} ) {
 
         #cleanup list variables
         delete $self->{IN_LIST};

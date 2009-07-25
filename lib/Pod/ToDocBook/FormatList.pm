@@ -114,6 +114,7 @@ sub process_format {
     my ( $self, $cdata, %att ) = @_;
 
     #    my ( $title, $align, $row_titles, @strs ) = split( /\n/, $cdata );
+    my $pod_parser = new Pod::ToDocBook::Pod2xml::;
     my $over = $self->mk_element('over');
     my @lines = split( /\n/, $cdata );
     foreach my $line (@lines) {
@@ -123,7 +124,7 @@ sub process_format {
         my $item =
           $self->mk_element('item')
           ->add_content( $self->mk_element('title')
-              ->add_content( $self->mk_characters($line) ) );
+              ->add_content(  $pod_parser->get_elements_from_text($line, 'list format')) ); #$self->mk_characters($line) 
      $over->add_content( $item)
     }
     return $over;

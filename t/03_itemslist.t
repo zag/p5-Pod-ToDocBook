@@ -8,14 +8,46 @@ Test  Pod::ToDocBook::ProcessItems filter
 
 use strict;
 use warnings;
-#use Test::More ('no_plan');
-use Test::More (tests=>12);
+
+use Test::More ( tests => 12 );
 use XML::ExtOn qw( create_pipe );
 use XML::SAX::Writer;
 use XML::Flow;
 use Data::Dumper;
 use_ok 'Pod::ToDocBook::Pod2xml';
 use_ok 'Pod::ToDocBook::ProcessItems';
+use_ok 'Pod::ToDocBook';
+
+sub xml_ref {
+    my $xml = shift;
+    my %tags;
+
+    #collect tags names;
+    map { $tags{$_}++ } $xml =~ m/<(\w+)/gis;
+
+    #make handlers
+    our $res;
+    for ( keys %tags ) {
+        my $name = $_;
+        $tags{$_} = sub {
+            my $attr = shift || {};
+            return $res = {
+                name    => $name,
+                attr    => $attr,
+                content => [ grep { ref $_ } @_ ]
+            };
+          }
+    }
+    my $rd = new XML::Flow:: \$xml;
+    $rd->read( \%tags );
+    $res;
+
+}
+
+sub is_deeply_xml {
+    my ( $got_xml, $expected_xml, @p ) = @_;
+    return is_deeply( xml_ref($got_xml), xml_ref($expected_xml), @p );
+}
 
 sub pod2xml {
     my $text = shift;
@@ -23,14 +55,41 @@ sub pod2xml {
     my $w = new XML::SAX::Writer:: Output => \$buf;
     my $px = new Pod::ToDocBook::Pod2xml:: header => 0, doctype => 'chapter';
     my $p = create_pipe(
-        $px, qw( Pod::ToDocBook::ProcessItems ),
+        $px, qw( Pod::ToDocBook::ProcessItems ), @_,
 
-        #      create_pipe( $px,
         $w
     );
     $p->parse($text);
     return $buf;
 }
+
+my $xml01 = pod2xml( <<TT);
+
+=pod
+
+=over 1
+
+=item * swrasr
+
+=item * asdasd
+
+=back
+
+=begin list
+
+* test1
+* test2
+
+=end list
+
+=cut
+TT
+
+is_deeply_xml $xml01,
+q#<chapter><pod><itemizedlist><listitem><para>swrasr</para></listitem><listitem><para>asdasd</para></listitem></itemizedlist><begin params='' name='list'><![CDATA[* test1
+* test2
+
+]]></begin></pod></chapter>#, 'test list';
 
 my $xml1 = pod2xml( <<OUT1 );
 
@@ -48,21 +107,8 @@ test
 
 OUT1
 
-#diag $xml1;
-#exit;
-my $f1 = new XML::Flow:: \$xml1;
-my ( $t1, $c1 );
-$f1->read(
-    {
-        'variablelist' => sub { shift; $c1++; $t1 = \@_ },
-        'varlistentry' => sub { shift; $c1++; return {@_} },
-        term => sub { shift; return term => join "", @_ }
-    }
-);
-is $c1, 3, 'variablelist: count';
-
-#diag Dumper $t1;
-is_deeply $t1, [ { 'term' => 'test' }, { 'term' => 'test2' } ],
+is_deeply_xml $xml1,
+q#<chapter><variablelist><varlistentry><term>test</term><listitem><para>test</para></listitem><varlistentry><term>test2</term><para>test</para></varlistentry></varlistentry></variablelist></chapter>#,
   'variablelist: terms';
 
 my $xml2 = pod2xml( <<OUT1 );
@@ -96,7 +142,8 @@ $f2->read(
 );
 is $c2, 3, 'itemizedlist: count';
 
-is_deeply $t2, [ { 'para' => 'asdasdasd' }, { 'para' => 'asdasdasd' } ],
+is_deeply $t2,
+  [ { 'para' => 'asdasdasd' }, { 'para' => 'asdasdasd' } ],
   'itemizedlist: paras';
 
 my $xml3 = pod2xml( <<OUT1 );
@@ -150,34 +197,8 @@ dfsdfas
 
 OUT1
 
-# <chapter><variablelist><varlistentry><term><anchor id=':test' />test</term><listitem><para>text</para></listitem></varlistentry><varlistentry><term><anchor id=':asdasdasd' />asdasdasd</term><listitem><para>dfsdfas</para></listitem></varlistentry></variablelist></chapter>
-
-my $f4 = new XML::Flow:: \$xml4;
-my ( $t4, $c4 );
-$f4->read(
-    {
-        'variablelist' => sub { shift; $c4++; $t4 = \@_ },
-        'varlistentry' => sub { shift; $c4++; return varlistentry => \@_ },
-        'listitem' => sub { shift; $c4++; return {@_} },
-        'term' => sub { shift; $c4++; return term => \@_ },
-        'anchor' => sub {
-            my $attr = shift;
-            $c4++;
-            $c4++ if exists $attr->{ad};
-            return { anchor => \@_ };
-        },
-
-        para => sub { shift; return para => join "", @_ }
-    }
-);
-is $c4, 9, 'variablelist: count';
-is_deeply $t4,
-  [
-    'varlistentry',
-    [ 'term', [ { 'anchor' => [] }, 'test' ], { 'para' => 'text' } ],
-    'varlistentry',
-    [ 'term', [ { 'anchor' => [] }, 'asdasdasd' ], { 'para' => 'dfsdfas' } ]
-  ],
+is_deeply_xml $xml4,
+q# <chapter><variablelist><varlistentry><term>test</term><listitem><para>text</para></listitem><varlistentry><term>asdasdasd</term><para>dfsdfas</para></varlistentry></varlistentry></variablelist></chapter>#,
   'variablelist: struct';
 
 my $xml5 = pod2xml( <<OUT1 );
@@ -195,18 +216,15 @@ test
 OUT1
 
 # <chapter><blockquote><para>test</para></blockquote><verbatim><![CDATA[  text
-# ]]></verbatim></chapter> 
+# ]]></verbatim></chapter>
 my $f5 = new XML::Flow:: \$xml5;
 my ( $t5, $c5 );
 $f5->read(
     {
         'blockquote' => sub { shift; $c5++; $t5 = \@_ },
-        para => sub { shift; $c5++;return para => join "", @_ }
+        para => sub { shift; $c5++; return para => join "", @_ }
     }
 );
 is $c5, 2, 'blockqoute: count';
-is_deeply $t5,  [
-           'para',
-           'test'
-         ], 'blockqoute: struct';
+is_deeply $t5, [ 'para', 'test' ], 'blockqoute: struct';
 

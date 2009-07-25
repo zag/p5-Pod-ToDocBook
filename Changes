@@ -1,5 +1,12 @@
 Revision history for Perl extension Pod::ToDocBook.
 #$Id: Changes 385 2008-12-30 15:46:21Z zag $
+
+0.7
+    - fix tests
+    - fix process itemlists
+    - clean code for ProcessItems.pm 
+    - fix process custom formats
+    - process formatting codes in format "list"
 0.6
     - add easy defined itemized list (FormatList)
 0.5

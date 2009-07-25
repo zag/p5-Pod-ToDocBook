@@ -20,6 +20,38 @@ use_ok 'Pod::ToDocBook::DoSequences';
 use_ok 'Pod::ToDocBook::FormatList';
 use_ok 'Pod::ToDocBook::ProcessItems';
 
+
+sub xml_ref {
+    my $xml = shift;
+    my %tags;
+
+    #collect tags names;
+    map { $tags{$_}++ } $xml =~ m/<(\w+)/gis;
+
+    #make handlers
+    our $res;
+    for ( keys %tags ) {
+        my $name = $_;
+        $tags{$_} = sub {
+            my $attr = shift || {};
+            return $res = {
+                name    => $name,
+                attr    => $attr,
+                content => [ grep { ref $_ } @_ ]
+            };
+          }
+    }
+    my $rd = new XML::Flow:: \$xml;
+    $rd->read( \%tags );
+    $res;
+
+}
+
+sub is_deeply_xml {
+    my ( $got_xml, $expected_xml, @p ) = @_;
+    return is_deeply( xml_ref($got_xml), xml_ref($expected_xml), @p );
+}
+
 sub pod2xml {
     my $text = shift;
     my $buf;
@@ -45,16 +77,18 @@ my $xml1 = pod2xml( <<'OUT1' );
 
 =end list
 
+=head1 title
+
+=over 1
+
+=item * tes2
+
+=back
+
 =cut
 OUT1
 
-#diag  $xml1; exit;
-# <chapter><pod><itemizedlist><listitem><para>item 1</para></listitem><listitem><para>item 2</para></listitem><listitem><para>item 3</para></listitem></itemizedlist></pod></chapter>
-my ( $t1, $c1 );
-( new XML::Flow:: \$xml1 )->read({
-    listitem=>sub { shift; $c1++ },
-    itemizedlist=>sub { $c1++},
-});
-is $c1, 4, 'format codes: count';
+is_deeply_xml  $xml1,
+q# <chapter><pod><itemizedlist><listitem><para>item 1</para></listitem><listitem><para>item 2</para></listitem><listitem><para>item 3</para></listitem></itemizedlist><head1><title>title</title><itemizedlist><listitem><para>tes2</para></listitem></itemizedlist></head1></pod></chapter>#,'format codes: count';
 
 
