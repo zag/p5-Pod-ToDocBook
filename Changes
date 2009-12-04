@@ -1,6 +1,8 @@
 Revision history for Perl extension Pod::ToDocBook.
 #$Id: Changes 385 2008-12-30 15:46:21Z zag $
 
+0.8
+    -fix rt (#52418)
 0.7
     - fix tests
     - fix process itemlists
