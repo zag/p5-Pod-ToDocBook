@@ -130,7 +130,6 @@ sub process_format {
     return $over;
     #create POD2XML instance for parce pod sequences
     #    my $pod_parser = new Pod::ToDocBook::Pod2xml::;
-    #    warn "asdasdasd";
     return undef;
 }
 

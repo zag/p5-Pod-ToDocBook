@@ -46,7 +46,13 @@ sub xml_ref {
 
 sub is_deeply_xml {
     my ( $got_xml, $expected_xml, @p ) = @_;
-    return is_deeply( xml_ref($got_xml), xml_ref($expected_xml), @p );
+    unless (  is_deeply( xml_ref($got_xml), xml_ref($expected_xml), @p ) ) {
+        diag "got:", "<" x 40;
+        diag $got_xml;
+        diag "expected:", ">" x 40;
+        diag $expected_xml;
+
+    }
 }
 
 sub pod2xml {
@@ -108,7 +114,7 @@ test
 OUT1
 
 is_deeply_xml $xml1,
-q#<chapter><variablelist><varlistentry><term>test</term><listitem><para>test</para></listitem><varlistentry><term>test2</term><para>test</para></varlistentry></varlistentry></variablelist></chapter>#,
+q#<chapter><variablelist><varlistentry><term>test</term><listitem><para>test</para></listitem></varlistentry><varlistentry><term>test2</term><listitem><para>test</para></listitem></varlistentry></variablelist></chapter>#,
   'variablelist: terms';
 
 my $xml2 = pod2xml( <<OUT1 );
@@ -198,7 +204,7 @@ dfsdfas
 OUT1
 
 is_deeply_xml $xml4,
-q# <chapter><variablelist><varlistentry><term>test</term><listitem><para>text</para></listitem><varlistentry><term>asdasdasd</term><para>dfsdfas</para></varlistentry></varlistentry></variablelist></chapter>#,
+q# <chapter><variablelist><varlistentry><term>test</term><listitem><para>text</para></listitem></varlistentry><varlistentry><term>asdasdasd</term><listitem><para>dfsdfas</para></listitem></varlistentry></variablelist></chapter>#,
   'variablelist: struct';
 
 my $xml5 = pod2xml( <<OUT1 );

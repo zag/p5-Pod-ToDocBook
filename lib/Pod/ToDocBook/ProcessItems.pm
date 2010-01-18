@@ -83,6 +83,7 @@ sub _process_item {
 sub on_start_element {
     my ( $self, $el ) = @_;
     my $lname = $el->local_name;
+    #warn "start: $lname:";
     my $cname =
       $self->current_element ? $self->current_element->local_name : '';
     my $attr = $el->attrs_by_name;
@@ -105,7 +106,7 @@ sub on_start_element {
             $self->{LIST_ELEMENT} = $start_elem;
 
             #$el->insert_to($start_elem);
-            #diag "mk start ".$start_elem->local_name;
+            #warn "mk start ".$start_elem->local_name;
             @res = ( $self->mk_start_element($start_elem), $el );
             $self->{IN_LIST} = $type;
         }
@@ -152,15 +153,16 @@ sub on_start_element {
 sub on_end_element {
     my ( $self, $el ) = @_;
     my $lname = $el->local_name;
+    #warn "end: $lname:";
     my $cname =
       $self->current_element ? $self->current_element->local_name : '';
-    if ( $cname eq 'over' && exists $self->{IN_LIST} ) {
+    if ( $lname eq 'over' && exists $self->{IN_LIST} ) {
 
         #cleanup list variables
         delete $self->{IN_LIST};
         my $list_elem = delete $self->{LIST_ELEMENT};
 
-        #diag "mk end ". $list_elem->local_name;
+        #warn "mk end ". $list_elem->local_name;
         return [ $self->mk_end_element($list_elem), $el ];
     }
     if ( $lname eq 'varlistentry' and exists $self->{NEED_CLOSE_LISTITEM} ) {

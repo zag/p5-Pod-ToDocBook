@@ -282,6 +282,8 @@ sub _current {
 sub _process {
     my $self = shift;
     my ($elem) = @_;
+#    warn "process ". $elem . "at " . $elem->local_name;
+#    warn (ref($elem) eq 'HASH') ?  $elem->{type} : $elem->local_name;
 
     #get element for current level
     if ( my $current = $self->_current ) {

@@ -49,6 +49,17 @@ sub xml_ref {
 
 sub is_deeply_xml {
     my ( $got_xml, $expected_xml, @p ) = @_;
+    unless (  is_deeply( xml_ref($got_xml), xml_ref($expected_xml), @p ) ) {
+        diag "got:", "<" x 40;
+        diag $got_xml;
+        diag "expected:", ">" x 40;
+        diag $expected_xml;
+
+    }
+}
+
+sub is_deeply_xml1 {
+    my ( $got_xml, $expected_xml, @p ) = @_;
     return is_deeply( xml_ref($got_xml), xml_ref($expected_xml), @p );
 }
 
@@ -90,5 +101,4 @@ OUT1
 
 is_deeply_xml  $xml1,
 q# <chapter><pod><itemizedlist><listitem><para>item 1</para></listitem><listitem><para>item 2</para></listitem><listitem><para>item 3</para></listitem></itemizedlist><head1><title>title</title><itemizedlist><listitem><para>tes2</para></listitem></itemizedlist></head1></pod></chapter>#,'format codes: count';
-
 
