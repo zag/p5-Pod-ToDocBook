@@ -31,6 +31,7 @@ Pod::ToDocBook - set of L<XML::ExtOn> filters for process POD data.
 =item * Pod::ToDocBook::ProcessHeads - process =head's elements
 
 =item *  Pod::ToDocBook::TableDefault 
+
 =back
 
 Sample  for add new processor:
